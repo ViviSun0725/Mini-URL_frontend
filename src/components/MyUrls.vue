@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, reactive } from "vue";
 import apiClient from "@/api/axios.js";
+import { Modal } from "bootstrap";
 import { useAuthStore } from "@/stores/auth.js";
 import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
@@ -8,12 +9,20 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 const authStore = useAuthStore();
 const { isLoggedIn } = storeToRefs(authStore);
+
 const urls = ref([]);
 const filteredUrls = ref([]);
-const searchQuery = ref("");
 const loading = ref(false);
 const error = ref(null);
+const searchQuery = ref("");
 const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+
+const modalError = ref(null);
+const currentUrl = reactive({});
+const editModal = ref(null);
+const usePassword = ref(false);
+const initialPasswordExists = ref(false);
+const initialIsActive = ref(true);
 
 onMounted(async () => {
   if (!isLoggedIn) {
@@ -47,6 +56,24 @@ const filterUrls = () => {
   );
 };
 
+const editUrl = (url) => {
+  Object.assign(currentUrl, { ...url, password: "" });
+  initialPasswordExists.value = url.requiresPassword;
+  usePassword.value = initialPasswordExists.value;
+  initialIsActive.value = url.isActive;
+  modalError.value = null;
+
+  const modalElement = document.getElementById("editUrlModal");
+  if (modalElement) {
+    editModal.value = new Modal(modalElement);
+    modalElement.addEventListener("hidden.bs.modal", () => {
+      modalError.value = null;
+    });
+  }
+  if (editModal.value) {
+    editModal.value.show();
+  }
+};
 const deleteUrl = async (id) => {
   if (confirm("Are you sure you want to delete this URL?")) {
     try {
@@ -120,7 +147,12 @@ const deleteUrl = async (id) => {
                     </p>
                   </div>
                   <div class="button-group d-flex">
-                    <button class="btn btn-sm btn-info me-2">Edit</button>
+                    <button
+                      class="btn btn-sm btn-info me-2"
+                      @click="editUrl(url)"
+                    >
+                      Edit
+                    </button>
                     <button
                       class="btn btn-sm btn-danger"
                       @click="deleteUrl(url.id)"
@@ -130,6 +162,43 @@ const deleteUrl = async (id) => {
                   </div>
                 </li>
               </ul>
+            </div>
+            <!-- Edit Modal -->
+            <div class="modal fade" id="editUrlModal" tabindex="-1" aria-labelledby="editUrlModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="editorUrlModalLabel">Edit URL</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div v-if="modalError" class="alert alert-danger">{{ modalError }}</div>
+                    <form @submit.prevent="saveUrl">
+                      <div class="mb-3">
+                        <label for="editOriginalUrl" class="form-label">Original Url</label>
+                        <input type="url" class="form-control" id="editOriginalUrl" v-model="currentUrl.originalUrl" required>
+                      </div>
+                      <div class="mb-3">
+                        <label for="editDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="editDescription" v-modal="currentUrl.description"></textarea>
+                      </div>
+                      <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="editIsActive" v-model="currentUrl.isActive">
+                        <label class="form-check-label" for="editIsActive">Active</label>
+                      </div>
+                      <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="usePassword" v-model="usePassword">
+                        <label class="form-check-label" for="usePassword">Password Protected Link</label>
+                      </div>
+                      <div class="mb-3">
+                        <label for="editPassword" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="editPassword" v-model="currentUrl.password" :disabled="!usePassword">
+                      </div>
+                      <button type="submit" class="btn btn-primary">Save changes</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
