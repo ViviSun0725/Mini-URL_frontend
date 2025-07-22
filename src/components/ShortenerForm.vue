@@ -26,14 +26,31 @@ watch(originalUrl, (newVal,oldVal) => {
 });
 
 const shortenUrl = async () => {
-  // TODO /api/urls/shorten
+  shortUrl.value = "";
+  error.value = null;
+  try {
+    const response = await apiClient.post("/api/urls/shorten", {
+      originalUrl: originalUrl.value,
+      customShortCode: customShortCode.value || undefined,
+      password: password.value || undefined,
+      description: description.value || undefined,
+      isActive: isActive.value
+    });
+    shortUrl.value = response.data.shortUrl;
+  } catch (err) {
+    if(err.response && err.response.data && err.response.data.error) {
+      error.value = err.response.data.error;
+    } else {
+      error.value = "An error occurred while shortening the URL.";
+    }
+  }
 }
 
 const getPageDetails = async () => {
   // TODO
 }
 
-const dopyToClipboard = () => {
+const CopyToClipboard = () => {
   // TODO
 }
 </script>
@@ -78,7 +95,7 @@ const dopyToClipboard = () => {
                 </label>
               </div>
               
-              <button class="btn btn-primary w-100" type="submit">Shorten</button>
+              <button class="btn btn-primary w-100" type="submit" @click.prevent="shortenUrl">Shorten</button>
             </form>
             <div v-if="shortUrl" class="alert alert-success mt-3">
               <p class="mb-0">
