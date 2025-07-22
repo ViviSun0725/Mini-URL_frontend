@@ -1,10 +1,15 @@
 <script setup>
-import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth.js";
+import { storeToRefs } from "pinia";
 
-const isLoggedIn = ref(true); // This should be replaced with actual authentication logic
+const router = useRouter();
+const authStore = useAuthStore();
+const { isLoggedIn } = storeToRefs(authStore);
+
 const handleLogout = () => {
-  // Implement logout logic here
-  isLoggedIn.value = false;
+  authStore.logout();
+  router.push("/login");
 };
 </script>
 
@@ -22,20 +27,20 @@ const handleLogout = () => {
               <RouterLink class="nav-link" to="/my-urls">My URLs</RouterLink>
             </li>
           </ul>
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            <li class="nav-item" v-if="!isLoggedIn">
+              <RouterLink class="nav-link" to="/login">Login</RouterLink>
+            </li>
+            <li class="nav-item" v-if="!isLoggedIn">
+              <RouterLink class="nav-link" to="/register">Register</RouterLink>
+            </li>
+            <li class="nav-item" v-if="isLoggedIn">
+              <a class="nav-link" href="#" @click.prevent="handleLogout"
+                >Logout</a
+              >
+            </li>
+          </ul>
         </div>
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-          <li class="nav-item" v-if="!isLoggedIn">
-            <RouterLink class="nav-link" to="/login">Login</RouterLink>
-          </li>
-          <li class="nav-item" v-if="!isLoggedIn">
-            <RouterLink class="nav-link" to="/register">Register</RouterLink>
-          </li>
-          <li class="nav-item" v-if="isLoggedIn">
-            <a class="nav-link" href="#" @click.prevent="handleLogout"
-              >Logout</a
-            >
-          </li>
-        </ul>
       </div>
     </nav>
     <main>
