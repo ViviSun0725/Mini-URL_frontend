@@ -19,7 +19,7 @@
       router.push("/login");
     } catch (err) {
       console.error(err);
-      error.value = err.response?.data?.message || "Registration failed. Please try again.";
+      error.value = err.response?.data?.error || "Registration failed. Please try again.";
       console.error("Registration error:", error.value);
     }
   };
