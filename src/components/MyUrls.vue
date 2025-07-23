@@ -57,9 +57,7 @@ const filterUrls = () => {
 };
 
 const editUrl = (url) => {
-  console.log("url: ",url);
   Object.assign(currentUrl, { ...url, password: "" });
-  console.log("currentUrl", currentUrl);
   initialPasswordExists.value = url.requiresPassword;
   usePassword.value = initialPasswordExists.value;
   initialIsActive.value = url.isActive;
