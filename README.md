@@ -1,35 +1,75 @@
-# .
+# Mini URL Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+This is the frontend application for the Mini URL shortener project, built with Vue.js. It provides a user interface for interacting with the backend service, allowing users to register, log in, shorten URLs, manage their shortened URLs, and access redirected links.
 
-## Recommended IDE Setup
+For the backend service, visit the [Mini URL Backend](https://github.com/ViviSun0725/Mini-URL_backend) repository.
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## Table of Contents
 
-## Customize configuration
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Environment Variables](#environment-variables)
+  - [Running the Application](#running-the-application)
+- [Project Structure](#project-structure)
+## Features
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+- User authentication (Login, Registration)
+- URL shortening form
+- Display and management of user's shortened URLs
+- Redirection handling for short URLs
+- Protected link page for password-protected URLs
 
-## Project Setup
+## Technologies Used
 
-```sh
-npm install
+- Vue.js 3 (Frontend Framework)
+- Vite (Build Tool)
+- Pinia (State Management)
+- Vue Router (Routing)
+- Axios (HTTP Client for API calls)
+- Bootstrap 5 (CSS Framework)
+
+## Getting Started
+
+Follow these instructions to set up and run the frontend locally.
+
+### Prerequisites
+
+- Node.js (v18 or higher recommended)
+- npm (Node Package Manager)
+
+### Installation
+
+1.  Navigate to the `Frontend` directory:
+    ```bash
+    cd Frontend
+    ```
+2.  Install the dependencies:
+    ```bash
+    npm install
+    ```
+
+### Environment Variables
+
+Create a `.env` file in the `Frontend` directory based on the `.env.template` file. This file will store your configuration, such as the backend API URL.
+
+```
+# .env
+VITE_APP_BACKEND_URL="http://localhost:3000" # Or the URL where your backend is running
 ```
 
-### Compile and Hot-Reload for Development
+### Running the Application
 
-```sh
-npm run dev
-```
+-   **Development Mode:**
+    ```bash
+    npm run dev
+    ```
+    The application will be available at `http://localhost:5173` (or another port if 5173 is in use).
 
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
+-   **Build for Production:**
+    ```bash
+    npm run build
+    ```
+    This command compiles the application into static files in the `dist` directory.
