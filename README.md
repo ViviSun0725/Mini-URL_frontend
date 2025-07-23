@@ -2,6 +2,8 @@
 
 This is the frontend application for the Mini URL shortener project, built with Vue.js. It provides a user interface for interacting with the backend service, allowing users to register, log in, shorten URLs, manage their shortened URLs, and access redirected links.
 
+You can try it out at [Mini URL](https://miniurl.zeabur.app/)
+
 For the backend service, visit the [Mini URL Backend](https://github.com/ViviSun0725/Mini-URL_backend) repository.
 
 ## Table of Contents
