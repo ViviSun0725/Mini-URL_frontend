@@ -324,3 +324,32 @@ const deleteUrl = async (id) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+  .card {
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  .card-header {
+    background-color: #007bff;
+    color: white;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+  }
+
+  @media (max-width: 768px) {
+    .list-group-item {
+      flex-wrap: wrap;
+    }
+
+    .list-group-item > div:first-child {
+      flex-basis: 100%;
+      margin-bottom: 10px;
+    }
+
+    .button-group {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+</style>
