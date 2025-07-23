@@ -57,7 +57,9 @@ const filterUrls = () => {
 };
 
 const editUrl = (url) => {
+  console.log("url: ",url);
   Object.assign(currentUrl, { ...url, password: "" });
+  console.log("currentUrl", currentUrl);
   initialPasswordExists.value = url.requiresPassword;
   usePassword.value = initialPasswordExists.value;
   initialIsActive.value = url.isActive;
@@ -72,6 +74,71 @@ const editUrl = (url) => {
   }
   if (editModal.value) {
     editModal.value.show();
+  }
+};
+
+const saveUrl = async () => {
+  modalError.value = null;
+  try {
+    if (initialIsActive.value && !currentUrl.isActive) {
+      if (
+        !confirm(
+          "Deactivating this link will make it unusable. Are you sure you want to continue?"
+        )
+      ) {
+        currentUrl.isActive = true;
+        return;
+      }
+    }
+
+    const payload = {
+      originalUrl: currentUrl.originalUrl,
+      description: currentUrl.description,
+      isActive: currentUrl.isActive,
+    };
+
+    if (usePassword.value) {
+      // If "Password Protect Link" is checked
+      if (currentUrl.password) {
+        // If a new password is provided, validate and send it
+        if (currentUrl.password.length < 6) {
+          modalError.value = "Password must be at least 6 characters long.";
+          return;
+        }
+        payload.password = currentUrl.password;
+      } else if (initialPasswordExists.value) {
+        // If checkbox is checked, but no new password is provided for an existing protected link
+        if (
+          !confirm(
+            "you have not entered a new password. The existing password will be kept. Do you want to continue?"
+          )
+        ) {
+          return;
+        }
+      }
+    } else {
+      // If "Password Protect Link" is unchecked
+      if (initialPasswordExists.value) {
+        if (
+          !confirm(
+            "Unchecking this box will remove the password from this link. Are you sure you want to continue?"
+          )
+        ) {
+          usePassword.value = true;
+          return;
+        }
+      }
+      payload.password = "";
+    }
+    await apiClient.put(`/api/urls/${currentUrl.id}`, payload);
+    editModal.value.hide();
+    await fetchUrls();
+  } catch (err) {
+    if (err.response && err.response.data && err.response.data.errors) {
+      modalError.value = err.response.data.errors.map((e) => e.msg).join(", ");
+    } else {
+      modalError.value = err.response?.data?.error || "Failed to save URL.";
+    }
   }
 };
 const deleteUrl = async (id) => {
@@ -164,37 +231,90 @@ const deleteUrl = async (id) => {
               </ul>
             </div>
             <!-- Edit Modal -->
-            <div class="modal fade" id="editUrlModal" tabindex="-1" aria-labelledby="editUrlModalLabel" aria-hidden="true">
+            <div
+              class="modal fade"
+              id="editUrlModal"
+              tabindex="-1"
+              aria-labelledby="editUrlModalLabel"
+              aria-hidden="true"
+            >
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h5 class="modal-title" id="editorUrlModalLabel">Edit URL</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="editorUrlModalLabel">
+                      Edit URL
+                    </h5>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"
+                    ></button>
                   </div>
                   <div class="modal-body">
-                    <div v-if="modalError" class="alert alert-danger">{{ modalError }}</div>
+                    <div v-if="modalError" class="alert alert-danger">
+                      {{ modalError }}
+                    </div>
                     <form @submit.prevent="saveUrl">
                       <div class="mb-3">
-                        <label for="editOriginalUrl" class="form-label">Original Url</label>
-                        <input type="url" class="form-control" id="editOriginalUrl" v-model="currentUrl.originalUrl" required>
+                        <label for="editOriginalUrl" class="form-label"
+                          >Original Url</label
+                        >
+                        <input
+                          type="url"
+                          class="form-control"
+                          id="editOriginalUrl"
+                          v-model="currentUrl.originalUrl"
+                          required
+                        />
                       </div>
                       <div class="mb-3">
-                        <label for="editDescription" class="form-label">Description</label>
-                        <textarea class="form-control" id="editDescription" v-modal="currentUrl.description"></textarea>
+                        <label for="editDescription" class="form-label"
+                          >Description</label
+                        >
+                        <textarea
+                          class="form-control"
+                          id="editDescription"
+                          v-model="currentUrl.description"
+                        ></textarea>
                       </div>
                       <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="editIsActive" v-model="currentUrl.isActive">
-                        <label class="form-check-label" for="editIsActive">Active</label>
+                        <input
+                          type="checkbox"
+                          class="form-check-input"
+                          id="editIsActive"
+                          v-model="currentUrl.isActive"
+                        />
+                        <label class="form-check-label" for="editIsActive"
+                          >Active</label
+                        >
                       </div>
                       <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="usePassword" v-model="usePassword">
-                        <label class="form-check-label" for="usePassword">Password Protected Link</label>
+                        <input
+                          type="checkbox"
+                          class="form-check-input"
+                          id="usePassword"
+                          v-model="usePassword"
+                        />
+                        <label class="form-check-label" for="usePassword"
+                          >Password Protected Link</label
+                        >
                       </div>
                       <div class="mb-3">
-                        <label for="editPassword" class="form-label">New Password</label>
-                        <input type="password" class="form-control" id="editPassword" v-model="currentUrl.password" :disabled="!usePassword">
+                        <label for="editPassword" class="form-label"
+                          >New Password</label
+                        >
+                        <input
+                          type="password"
+                          class="form-control"
+                          id="editPassword"
+                          v-model="currentUrl.password"
+                          :disabled="!usePassword"
+                        />
                       </div>
-                      <button type="submit" class="btn btn-primary">Save changes</button>
+                      <button type="submit" class="btn btn-primary">
+                        Save changes
+                      </button>
                     </form>
                   </div>
                 </div>
