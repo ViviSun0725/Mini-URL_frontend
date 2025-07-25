@@ -15,13 +15,12 @@
 
   const handleRegister = async () => {
     const emailResult = EmailSchema.safeParse(email.value);
-    console.log(emailResult)
     if (!emailResult.success) {
       error.value = emailResult.error.issues[0].message
       return
     }
     const passwordResult = PasswordSchema.safeParse(password.value);
-    if (!passwordResult) {
+    if (!passwordResult.success) {
       error.value = passwordResult.error.issues[0].message
       return
     }
