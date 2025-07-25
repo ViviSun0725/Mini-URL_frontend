@@ -1,5 +1,6 @@
 <script setup>
-import { ref, watch, computed } from "vue";
+import * as z from "zod";
+import { ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import apiClient from "@/api/axios.js";
 import { useAuthStore } from "@/stores/auth.js";
@@ -14,9 +15,37 @@ const shortUrl = ref("");
 const error = ref(null);
 
 const authStore = useAuthStore();
-const router = useRouter();
 
 const { isLoggedIn } = storeToRefs(authStore);
+
+const userInputSchema = z.object({
+  originalUrl: z.url(
+    { protocol: /^https?$/ },
+    { error: "URL must start with http or https" }
+  ),
+  customShortCode: z
+    .string()
+    .optional()
+    .min(6, "Custom short code must be between 6 and 20 characters long")
+    .max(20, "Custom short code must be between 6 and 20 characters long")
+    .regex(/^[A-Za-z\d]{6,20}$/, {
+      error: "Custom short code may only contain lettersand numbers",
+    }),
+  password: z
+    .string()
+    .optional()
+    .min(6, { error: "Password must be between 6 and 20 characters long" })
+    .max(20, { error: "Password must be between 6 and 20 characters long" })
+    .regex(/^[A-Za-z\d!@#$%^&*]{6,20}$/, {
+      error:
+        "Password may only contain letters, numbers, and may only contain the following special characters: !@#$%^&*",
+    }),
+  description: z
+    .string()
+    .optional()
+    .max(300, { error: "Please keep the description under 300 characters." }),
+  isActive: z.boolean(),
+});
 
 watch(originalUrl, (newVal, oldVal) => {
   if (newVal !== oldVal) {
@@ -28,21 +57,26 @@ watch(originalUrl, (newVal, oldVal) => {
 const shortenUrl = async () => {
   shortUrl.value = "";
   error.value = null;
+
+  const userInput = {
+    originalUrl: originalUrl.value,
+    customShortCode: customShortCode.value || undefined,
+    password: password.value || undefined,
+    description: description.value || undefined,
+    isActive: isActive.value,
+  };
+
+  const userInputResult = userInputSchema.safeParse(userInput);
+  if (!userInputResult.success) {
+    error.value = userInputResult.error.issues[0].message;
+    return;
+  }
+
   try {
-    const response = await apiClient.post("/api/urls/shorten", {
-      originalUrl: originalUrl.value,
-      customShortCode: customShortCode.value || undefined,
-      password: password.value || undefined,
-      description: description.value || undefined,
-      isActive: isActive.value,
-    });
+    const response = await apiClient.post("/api/urls/shorten", payload);
     shortUrl.value = response.data.shortUrl;
   } catch (err) {
-    if (err.response && err.response.data && err.response.data.error) {
-      error.value = err.response.data.error;
-    } else {
-      error.value = "An error occurred while shortening the URL.";
-    }
+    error.value = err.response?.data?.error || "An error occurred while shortening the URL.";
   }
 };
 
@@ -65,7 +99,7 @@ const getPageDetails = async () => {
 
 const copyToClipboard = () => {
   navigator.clipboard.writeText(shortUrl.value).then(() => {
-    alert('Copied to clipboard!');
+    alert("Copied to clipboard!");
   });
 };
 </script>

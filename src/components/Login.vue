@@ -29,7 +29,7 @@ const handleLogin = async () => {
     return;
   }
   const passwordResult = PasswordSchema.safeParse(password.value);
-  if (!passwordResult) {
+  if (!passwordResult.success) {
     error.value = passwordResult.error.issues[0].message;
     return;
   }
