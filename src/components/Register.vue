@@ -1,4 +1,5 @@
 <script setup>
+  import * as z from "zod";
   import { ref } from "vue";
   import { useRouter } from "vue-router";
   import apiClient from "@/api/axios.js";
@@ -9,7 +10,22 @@
 
   const router = useRouter();
 
+  const EmailSchema = z.email("Please enter a valid email address");
+  const PasswordSchema = z.string().min(6, {error: "Password must be between 6 and 20 characters long"}).max(20,{error: "Password must be between 6 and 20 characters long"}).regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*]{6,20}$/,{error: "Password must include at least one letter and one number, and may only contain special characters: !@#$%^&*"});
+
   const handleRegister = async () => {
+    const emailResult = EmailSchema.safeParse(email.value);
+    console.log(emailResult)
+    if (!emailResult.success) {
+      error.value = emailResult.error.issues[0].message
+      return
+    }
+    const passwordResult = PasswordSchema.safeParse(password.value);
+    if (!passwordResult) {
+      error.value = passwordResult.error.issues[0].message
+      return
+    }
+    
     try {
       error.value = null;
       await apiClient.post("/api/auth/register", {
@@ -18,9 +34,7 @@
       });
       router.push("/login");
     } catch (err) {
-      console.error(err);
       error.value = err.response?.data?.error || "Registration failed. Please try again.";
-      console.error("Registration error:", error.value);
     }
   };
 </script>
