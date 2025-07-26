@@ -1,10 +1,9 @@
 <script setup>
-import * as z from "zod";
 import { ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import apiClient from "@/api/axios.js";
 import { useAuthStore } from "@/stores/auth.js";
-import { useRouter } from "vue-router";
+import { ShortenerFormSchema } from "@/utils/schema.js";
 
 const originalUrl = ref("");
 const customShortCode = ref("");
@@ -17,39 +16,6 @@ const error = ref(null);
 const authStore = useAuthStore();
 
 const { isLoggedIn } = storeToRefs(authStore);
-
-const ShortenerFormSchema = z.object({
-  originalUrl: z.url(
-    { protocol: /^https?$/ },
-    { error: "URL must start with http or https" }
-  ),
-  customShortCode: z
-    .string()
-    .min(6, {
-      error: "Custom short code must be between 6 and 20 characters long",
-    })
-    .max(20, {
-      error: "Custom short code must be between 6 and 20 characters long",
-    })
-    .regex(/^[A-Za-z\d]{6,20}$/, {
-      error: "Custom short code may only contain letter sand numbers",
-    })
-    .optional(),
-  password: z
-    .string()
-    .min(6, { error: "Password must be between 6 and 20 characters long" })
-    .max(20, { error: "Password must be between 6 and 20 characters long" })
-    .regex(/^[A-Za-z\d!@#$%^&*]{6,20}$/, {
-      error:
-        "Password may only contain letters, numbers, and may only contain the following special characters: !@#$%^&*",
-    })
-    .optional(),
-  description: z
-    .string()
-    .max(300, { error: "Please keep the description under 300 characters." })
-    .optional(),
-  isActive: z.boolean(),
-});
 
 watch(originalUrl, (newVal, oldVal) => {
   if (newVal !== oldVal) {
