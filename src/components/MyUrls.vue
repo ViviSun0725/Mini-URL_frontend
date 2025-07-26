@@ -17,9 +17,9 @@ const error = ref(null);
 const searchQuery = ref("");
 const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
+const editModal = ref(null);
 const modalError = ref(null);
 const currentUrl = reactive({});
-const editModal = ref(null);
 const usePassword = ref(false);
 const initialPasswordExists = ref(false);
 const initialIsActive = ref(true);
@@ -57,7 +57,9 @@ const filterUrls = () => {
 };
 
 const editUrl = (url) => {
+  // modal initialization
   Object.assign(currentUrl, { ...url, password: "" });
+
   initialPasswordExists.value = url.requiresPassword;
   usePassword.value = initialPasswordExists.value;
   initialIsActive.value = url.isActive;
@@ -78,12 +80,13 @@ const editUrl = (url) => {
 const saveUrl = async () => {
   modalError.value = null;
   try {
-    if (initialIsActive.value && !currentUrl.isActive) {
-      if (
-        !confirm(
-          "Deactivating this link will make it unusable. Are you sure you want to continue?"
-        )
-      ) {
+    const isDeactivating = initialIsActive.value && !currentUrl.isActive;
+    if (isDeactivating) {
+      const confirmed = confirm(
+        "Deactivating this link will make it unusable. Are you sure you want to continue?"
+      );
+      // Revert to active state if the user cancels the confirmation
+      if (!confirmed) {
         currentUrl.isActive = true;
         return;
       }
@@ -94,11 +97,11 @@ const saveUrl = async () => {
       description: currentUrl.description,
       isActive: currentUrl.isActive,
     };
-
     if (usePassword.value) {
       // If "Password Protect Link" is checked
-      if (currentUrl.password) {
-        // If a new password is provided, validate and send it
+      const hasNewPassword = !!currentUrl.password;
+      if (hasNewPassword) {
+        // TODO: enhance validation
         if (currentUrl.password.length < 6) {
           modalError.value = "Password must be at least 6 characters long.";
           return;
@@ -106,27 +109,26 @@ const saveUrl = async () => {
         payload.password = currentUrl.password;
       } else if (initialPasswordExists.value) {
         // If checkbox is checked, but no new password is provided for an existing protected link
-        if (
-          !confirm(
-            "you have not entered a new password. The existing password will be kept. Do you want to continue?"
-          )
-        ) {
-          return;
-        }
+        const keepOld = confirm(
+          "you have not entered a new password. The existing password will be kept. Do you want to continue?"
+        );
+        if (!keepOld) return;
+      } else {
+        alert("Please enter a password");
+        return
       }
     } else {
       // If "Password Protect Link" is unchecked
       if (initialPasswordExists.value) {
-        if (
-          !confirm(
-            "Unchecking this box will remove the password from this link. Are you sure you want to continue?"
-          )
-        ) {
-          usePassword.value = true;
+        const confirmRemove = confirm(
+          "Unchecking this box will remove the password from this link. Are you sure you want to continue?"
+        );
+        if (!confirmRemove) {
+          usePassword.value = true; // revert checkbox
           return;
         }
       }
-      payload.password = "";
+      payload.password = null;
     }
     await apiClient.put(`/api/urls/${currentUrl.id}`, payload);
     editModal.value.hide();
@@ -326,30 +328,30 @@ const deleteUrl = async (id) => {
 </template>
 
 <style scoped>
-  .card {
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  }
-  .card-header {
-    background-color: #007bff;
-    color: white;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
+.card {
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.card-header {
+  background-color: #007bff;
+  color: white;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+@media (max-width: 768px) {
+  .list-group-item {
+    flex-wrap: wrap;
   }
 
-  @media (max-width: 768px) {
-    .list-group-item {
-      flex-wrap: wrap;
-    }
-
-    .list-group-item > div:first-child {
-      flex-basis: 100%;
-      margin-bottom: 10px;
-    }
-
-    .button-group {
-      width: 100%;
-      justify-content: flex-end;
-    }
+  .list-group-item > div:first-child {
+    flex-basis: 100%;
+    margin-bottom: 10px;
   }
+
+  .button-group {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
 </style>
