@@ -18,32 +18,36 @@ const authStore = useAuthStore();
 
 const { isLoggedIn } = storeToRefs(authStore);
 
-const userInputSchema = z.object({
+const ShortenerFormSchema = z.object({
   originalUrl: z.url(
     { protocol: /^https?$/ },
     { error: "URL must start with http or https" }
   ),
   customShortCode: z
     .string()
-    .optional()
-    .min(6, "Custom short code must be between 6 and 20 characters long")
-    .max(20, "Custom short code must be between 6 and 20 characters long")
+    .min(6, {
+      error: "Custom short code must be between 6 and 20 characters long",
+    })
+    .max(20, {
+      error: "Custom short code must be between 6 and 20 characters long",
+    })
     .regex(/^[A-Za-z\d]{6,20}$/, {
-      error: "Custom short code may only contain lettersand numbers",
-    }),
+      error: "Custom short code may only contain letter sand numbers",
+    })
+    .optional(),
   password: z
     .string()
-    .optional()
     .min(6, { error: "Password must be between 6 and 20 characters long" })
     .max(20, { error: "Password must be between 6 and 20 characters long" })
     .regex(/^[A-Za-z\d!@#$%^&*]{6,20}$/, {
       error:
         "Password may only contain letters, numbers, and may only contain the following special characters: !@#$%^&*",
-    }),
+    })
+    .optional(),
   description: z
     .string()
-    .optional()
-    .max(300, { error: "Please keep the description under 300 characters." }),
+    .max(300, { error: "Please keep the description under 300 characters." })
+    .optional(),
   isActive: z.boolean(),
 });
 
@@ -58,7 +62,7 @@ const shortenUrl = async () => {
   shortUrl.value = "";
   error.value = null;
 
-  const userInput = {
+  const payload = {
     originalUrl: originalUrl.value,
     customShortCode: customShortCode.value || undefined,
     password: password.value || undefined,
@@ -66,17 +70,18 @@ const shortenUrl = async () => {
     isActive: isActive.value,
   };
 
-  const userInputResult = userInputSchema.safeParse(userInput);
-  if (!userInputResult.success) {
+  const ShortenerFormResult = ShortenerFormSchema.safeParse(payload);
+  if (!ShortenerFormResult.success) {
     error.value = userInputResult.error.issues[0].message;
     return;
   }
-
   try {
     const response = await apiClient.post("/api/urls/shorten", payload);
     shortUrl.value = response.data.shortUrl;
   } catch (err) {
-    error.value = err.response?.data?.error || "An error occurred while shortening the URL.";
+    error.value =
+      err.response?.data?.error ||
+      "An error occurred while shortening the URL.";
   }
 };
 

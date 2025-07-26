@@ -1,4 +1,5 @@
 <script setup>
+import * as z from "zod";
 import { ref } from "vue";
 import apiClient from "@/api/axios.js";
 import { useRouter } from "vue-router";
@@ -23,7 +24,6 @@ const PasswordSchema = z
 
 const handleLogin = async () => {
   const emailResult = EmailSchema.safeParse(email.value);
-  console.log(emailResult);
   if (!emailResult.success) {
     error.value = emailResult.error.issues[0].message;
     return;
