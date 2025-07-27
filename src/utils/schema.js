@@ -49,11 +49,32 @@ export const ShortenerFormSchema = z.object({
       error:
         "Password may only contain letters, numbers, and may only contain the following special characters: !@#$%^&*",
     })
-    .optional(),
+    .nullish(),
   description: z
     .string()
     .max(300, { error: "Please keep the description under 300 characters." })
-    .optional(),
+    .nullish(),
   isActive: z.boolean(),
 });
+
+export const editFormSchema = z.object({
+  originalUrl: z.url(
+    { protocol: /^https?$/ },
+    { error: "URL must start with http or https" }
+  ),
+  description: z
+    .string()
+    .max(300, { error: "Please keep the description under 300 characters." })
+    .nullish(),
+  isActive: z.boolean(),
+  password: z
+    .string()
+    .min(6, { error: "Password must be between 6 and 20 characters long" })
+    .max(20, { error: "Password must be between 6 and 20 characters long" })
+    .regex(/^[A-Za-z\d!@#$%^&*]{6,20}$/, {
+      error:
+        "Password may only contain letters, numbers, and may only contain the following special characters: !@#$%^&*",
+    })
+    .nullish(),
+})
 

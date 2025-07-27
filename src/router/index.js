@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
-import ShortenerForm from "@/components/ShortenerForm.vue";
-import RedirectPage from "@/components/RedirectPage.vue";
-import Login from "@/components/Login.vue";
-import Register from "@/components/Register.vue";
-import MyUrls from "@/components/MyUrls.vue";
+import ShortenerForm from "@/views/ShortenerFormView.vue";
+import RedirectPage from "@/views/RedirectPageView.vue";
+import Login from "@/views/LoginView.vue";
+import Register from "@/views/RegisterView.vue";
+import MyUrls from "@/views/MyUrlsView.vue";
 import { useAuthStore } from "@/stores/auth";
 
 const router = createRouter({

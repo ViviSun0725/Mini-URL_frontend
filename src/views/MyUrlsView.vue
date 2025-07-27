@@ -5,6 +5,7 @@ import { Modal } from "bootstrap";
 import { useAuthStore } from "@/stores/auth.js";
 import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
+import { editFormSchema } from "@/utils/schema.js"
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -130,6 +131,13 @@ const saveUrl = async () => {
       }
       payload.password = null;
     }
+
+    const payloadResult = editFormSchema.safeParse(payload);
+    if(!payloadResult.success){
+      modalError.value = payloadResult.error.issues[0].message;
+      return;
+    }
+
     await apiClient.put(`/api/urls/${currentUrl.id}`, payload);
     editModal.value.hide();
     await fetchUrls();
